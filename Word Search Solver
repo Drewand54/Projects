@@ -1,0 +1,379 @@
+
+import java.util.Scanner;
+import java.util.*;
+
+public class wordSearch {
+	public static void main(String[] args) {
+		Scanner scnr = new Scanner(System.in);
+		String target = "";
+
+
+		System.out.print("Enter size: ");
+		int size = scnr.nextInt();
+
+		String throwaway1 = scnr.nextLine();
+
+		System.out.println("Enter word search: ");
+
+		int volume = size * size;
+
+		char[][] completeArray = new char[size][size];
+		char[][] finalArray = new char[2*size][2*size];
+		char[][] wordSearch = new char[size][size];
+		char[][] incompleteRows = new char[size][size];
+		char[][] incompleteColumns = new char[size][size];
+		char[][] finalArrayRowBackwards = new char[size][size];
+		char[][] finalArrayColumnBackwards = new char[size][size];
+		char[][] diagonalsRows = new char[size][size];
+		char[][] diagonalRowsBackwards = new char[size][size];
+
+		for (int i = 0; i < size; i++) {
+			String line = scnr.nextLine().replace(" ","");
+			for (int j = 0; j < size; j ++) {
+				wordSearch[i][j] = line.charAt(j);
+			}
+		}
+
+		System.out.print("Enter number of words to look for: ");
+		int numTargets = scnr.nextInt();
+
+		String throw2 = scnr.nextLine();
+
+		for (int z = 0; z < numTargets; z++) {
+			System.out.print("Enter word you want found: ");
+			target = scnr.nextLine();
+
+			incompleteRows = searchAllRows(wordSearch, size, target);
+			incompleteColumns = searchAllColumns(wordSearch,size,target);
+			finalArrayRowBackwards = searchAllRowsBackwards(wordSearch,size,target);
+			finalArrayColumnBackwards = searchAllColumnsBackwards(wordSearch,size,target);
+			diagonalsRows = searchDiagonals(wordSearch,size,target);
+			diagonalRowsBackwards = searchDiagonals(wordSearch,size,getTargetBackwards(target));
+
+			for (int i = 0; i < size; i++ ) {
+				for (int j = 0; j < size; j++) {
+					if (!(Character.isLetter(completeArray[i][j]))) {
+						completeArray[i][j] = incompleteRows[i][j];
+					}
+					if (!(Character.isLetter(completeArray[i][j]))) {
+						completeArray[i][j] = incompleteColumns[i][j];
+					}
+					if (!(Character.isLetter(completeArray[i][j]))) {
+						completeArray[i][j] = finalArrayRowBackwards[i][j];
+					}
+					if (!(Character.isLetter(completeArray[i][j]))) {
+						completeArray[i][j] = finalArrayColumnBackwards[i][j];   
+					}
+					if (!(Character.isLetter(completeArray[i][j]))) {
+						completeArray[i][j] = diagonalsRows[i][j]; 
+					}
+					if (!(Character.isLetter(completeArray[i][j]))) {
+						completeArray[i][j] = diagonalRowsBackwards[i][j];
+					}
+				}
+			}
+		}
+
+		for (int i = 0; i < size; i++ ) {
+			for (int j = 0; j < size; j++) {
+				if (!(Character.isLetter(completeArray[i][j]))) {
+					completeArray[i][j] = '#';
+				}
+			}
+		}
+
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				finalArray[i][2*j] = completeArray[i][j];
+			}
+		}
+
+		for (int i = 0; i < 2 * size; i++) {
+			for (int j = 1; j < 2 * size; j = j + 2) {
+				finalArray[i][j] = ' ';
+			}
+		}
+
+
+		printArray(size, 2*size,finalArray);
+
+
+	}
+
+	// Searches rows left to right
+	public static char[][] searchAllRows(char[][] wordSearch,int size, String target) {
+		String lineTemp = "";
+		char[][] finalArrayRow = new char[size][size];
+		for (int i = 0; i < size; i ++) {
+			lineTemp = getRow(wordSearch,i,size);
+			if (lineTemp.indexOf(target) != -1) {
+				finalArrayRow = getFinalArrayRow(wordSearch,size,i,lineTemp.indexOf(target),target);
+				// printArray(size, finalArrayRow);
+			}
+		}
+		return finalArrayRow;
+	}
+
+	//  Searches rows right to left
+	public static char[][] searchAllRowsBackwards(char[][] wordSearch,int size, String target) {
+		String lineTemp = "";
+		char[][] finalArrayRowBackwards = new char[size][size];
+		for (int i = 0; i < size; i ++) {
+			lineTemp = getRow(wordSearch,i,size);
+			if (lineTemp.indexOf(getTargetBackwards(target)) != -1) {
+				finalArrayRowBackwards = getFinalArrayRow(wordSearch,size,i,lineTemp.indexOf(getTargetBackwards(target)),target);
+			}
+		}
+		return finalArrayRowBackwards;
+	}
+
+
+
+	//  searches columns top to bottom
+	public static char[][] searchAllColumns(char[][] wordSearch, int size, String target) {
+		String lineTemp = "";
+		char[][] finalArrayColumn = new char[size][size];
+		for (int j = 0; j < size; j ++) {
+			lineTemp = getColumn(wordSearch,j,size);
+			if (lineTemp.indexOf(target) != -1) {
+				finalArrayColumn = getFinalArrayColumn(wordSearch,size,lineTemp.indexOf(target),j,target);
+			}
+		}
+		return finalArrayColumn;
+	}
+
+	//  searches columns bottom to top
+	public static char[][] searchAllColumnsBackwards(char[][] wordSearch, int size, String target) {
+		String lineTemp = "";
+		char[][] finalArrayColumnBackwards = new char[size][size];
+		for (int j = 0; j < size; j ++) {
+			lineTemp = getColumn(wordSearch,j,size);
+			if (lineTemp.indexOf(getTargetBackwards(target)) != -1) {
+				finalArrayColumnBackwards = getFinalArrayColumn(wordSearch,size,lineTemp.indexOf(getTargetBackwards(target)),j,target);
+			}
+		}
+		return finalArrayColumnBackwards;
+	}
+
+
+	//  creates row
+	public static String getRow(char[][] array, int row, int size) {
+		String fullLine = "";
+		for (int j = 0; j < size; j ++) {
+			fullLine += array[row][j];
+		}
+		return fullLine;
+	}
+
+	//  creates column
+	public static String getColumn(char[][] array, int column, int size) {
+		String fullLine = "";
+		for (int i = 0; i < size; i ++) {
+			fullLine += array[i][column];
+		}
+		return fullLine;
+	}
+
+	// returns the target backwards
+	public static String getTargetBackwards(String target) {
+		String newTarget = "";
+		for (int j = target.length() - 1; j >= 0; j --) {
+			newTarget += target.charAt(j);
+		}
+		return newTarget;
+	}
+
+	//  prints any array
+	public static void printArray (int row, int column, char[][] wordSearch) {
+		for (int i = 0; i < row; i ++) {
+			String fullLine = "";
+			for (int j = 0; j < column; j++) {
+				fullLine += wordSearch[i][j];
+			}
+			System.out.println(fullLine);
+		}
+	}
+
+	// Returns word in row
+	public static char[][] getFinalArrayRow(char[][] wordSearch, int size, int row, int column, String target) {
+		char[][] finalArrayRow = new char[size][size];
+		for (int j = column; j < column + target.length(); j++) {
+			finalArrayRow[row][j] = wordSearch[row][j];
+		}
+		return finalArrayRow;
+	}
+
+	// returns word in column
+	public static char[][] getFinalArrayColumn(char[][] wordSearch, int size, int row, int column, String target) {
+		char[][] finalArrayColumn = new char[size][size];
+		for (int j = row; j < row + target.length(); j++) {
+			finalArrayColumn[j][column] = wordSearch[j][column];
+		}
+		return finalArrayColumn;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+	public static char[][] searchDiagonals(char[][] wordSearch, int size, String target) {
+		String lineTemp = "";
+		char [][] diagonals = new char[size][size];
+		for (int i = 1; i < size; i++) {
+			lineTemp = getDiagonalsRows(wordSearch, size, i);
+			if (lineTemp.indexOf(target) != -1) {
+				diagonals = getDiagonalArrayRows(wordSearch,size,i,lineTemp.indexOf(target),target);
+				return diagonals;
+			}
+		}
+		lineTemp = "";
+		for (int j = 0; j < size; j++) {
+			lineTemp = getDiagonalsColumns(wordSearch, size, j);
+			if (lineTemp.indexOf(target) != -1) {
+				diagonals = getDiagonalArrayColumns(wordSearch,size,lineTemp.indexOf(target), j,target);
+				return diagonals;
+			}
+		}
+		lineTemp = "";
+		for (int j = size - 1; j > -1; j--) {
+			lineTemp = getDiagonalColumnsRight(wordSearch, size, j);
+			if (lineTemp.indexOf(target) != -1) {
+				diagonals = getDiagonalColumnsArrayRight(wordSearch,size,lineTemp.indexOf(target), j,target);
+				return diagonals;
+			}
+		}
+		lineTemp = "";
+		for (int i = 1; i < size - 1; i++) {
+			lineTemp = getDiagonalRowsRight(wordSearch, size, i);
+			if (lineTemp.indexOf(target) != -1) {
+				diagonals = getDiagonalRowsArrayRight(wordSearch,size,i,lineTemp.indexOf(target),target);
+				return diagonals;
+			}
+		}
+		return diagonals;
+	}
+
+
+
+
+
+	// MUST START AT ROW = 1
+	// XXX
+	// #XX
+	// ##X
+	public static String getDiagonalsRows(char[][] wordSearch, int size, int row) {
+		String diagonal = "";
+		for (int j = 0; j < size; j ++) {
+			if ((j + row) < size) {
+				diagonal += wordSearch[j + row][j];
+			}
+		}
+		return diagonal;
+	}
+
+	public static char[][] getDiagonalArrayRows(char[][] array, int size, int row, int column, String target) {
+		char[][] diagonalArrayRows = new char[size][size];
+		int tempRow = row;
+		int tempColumn = column;
+		for (int i = 0; i < target.length(); i++) {
+			diagonalArrayRows[tempColumn + tempRow][tempColumn] = array[tempColumn + tempRow][tempColumn];
+			tempColumn += 1;
+		}
+		return diagonalArrayRows;
+	}
+
+	// ###
+	// X##
+	// XX#
+	// Start at column 0
+	public static String getDiagonalsColumns(char [][] wordSearch, int size, int column) {
+		String diagonal = "";
+		for (int i = 0; i < size; i ++) {
+			if ((i + column) < size) {
+				diagonal += wordSearch[i][i+column];
+			}
+		}
+		return diagonal;
+	}
+
+
+	public static char[][] getDiagonalArrayColumns (char[][] array, int size, int row, int column, String target) {
+		char[][] diagonalArrayColumns = new char[size][size];
+		int tempRow = row;
+		int tempColumn = column;
+		for (int i = 0; i < target.length(); i++) {
+			diagonalArrayColumns[tempRow][tempColumn + row] = array[tempRow][tempColumn + row];
+			tempRow += 1;
+			tempColumn +=1; 
+		}
+		return diagonalArrayColumns;
+	}
+
+
+	// MUST START AT COLUMN = SIZE - 1
+	// ###
+	// ##X
+	// #XX
+	public static String getDiagonalColumnsRight(char[][] wordSearch, int size, int column) {
+		String diagonal = "";
+		for (int i = 0; i < size; i ++) {
+			if ((column - i) > -1) {
+				diagonal += wordSearch[i][column - i];
+			}
+		}
+		return diagonal;
+	}
+
+
+
+	public static char [][] getDiagonalColumnsArrayRight (char[][] array, int size, int row, int column, String target) {
+		char[][] diagonalArrayColumnsRight = new char[size][size];
+		int tempRow = row;
+		int tempColumn = column;
+		for (int i = 0; i < target.length(); i++) {
+			diagonalArrayColumnsRight[tempRow][tempColumn] = array[tempRow][tempColumn];
+			tempRow += 1;
+			tempColumn -= 1;
+		}
+		return diagonalArrayColumnsRight;
+	}
+
+
+	//  XXX
+	//  XX#
+	//  X##
+	// Start at row = 1 up till size - 1
+	public static String getDiagonalRowsRight(char[][] wordSearch, int size, int row) {
+		String diagonal = "";
+		int tempRow = row;
+		for (int j = size - 1; j > -1; j--) {
+			if (tempRow < size) {
+				diagonal += wordSearch[tempRow][j];
+				tempRow = tempRow + 1;
+			}
+		}
+		return diagonal;
+	}
+
+
+	public static char [][] getDiagonalRowsArrayRight(char[][] array, int size, int row, int column, String target) {
+		char[][] diagonalArrayRowsRight = new char[size][size];
+		int tempRow = row;
+		int tempColumn = column;
+		for (int i = 0; i < target.length(); i++) {
+			diagonalArrayRowsRight[tempRow + tempColumn + i][size -1 - tempColumn - i] = array[tempRow + tempColumn + i][size -1 - tempColumn - i];
+		}
+		return diagonalArrayRowsRight;
+	}
+
+
+}
+
+
